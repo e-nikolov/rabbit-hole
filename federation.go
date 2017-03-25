@@ -56,7 +56,6 @@ func (c *Client) PutFederationUpstream(vhost string, upstreamName string, fDef F
 	//body = []byte(`{"value":{"uri":"amqp://ares_admin:yYaCJESJ0LsT@188.166.84.89:5672/58af15daecfb2c1b3e27a7ac", "exchange":"wutt"}}`)
 
 	logger.Warn(string(body))
-
 	req, err := newRequestWithBody(c, "PUT", "parameters/federation-upstream/"+PathEscape(vhost)+"/"+PathEscape(upstreamName), body)
 	if err != nil {
 		return nil, err
@@ -77,6 +76,7 @@ func (c *Client) PutFederationUpstream(vhost string, upstreamName string, fDef F
 // Deletes a federation upstream.
 func (c *Client) DeleteFederationUpstream(vhost, upstreamName string) (res *http.Response, err error) {
 	req, err := newRequestWithBody(c, "DELETE", "parameters/federation-upstream/"+PathEscape(vhost)+"/"+PathEscape(upstreamName), nil)
+
 	if err != nil {
 		return nil, err
 	}
@@ -148,6 +148,7 @@ func (c *Client) PutFederationUpstreamSet(vhost, upstreamSetName string, upstrea
 	}
 
 	req, err := newRequestWithBody(c, "PUT", "parameters/federation-upstream-set/"+PathEscape(vhost)+"/"+PathEscape(upstreamSetName), body)
+
 	if err != nil {
 		return nil, err
 	}

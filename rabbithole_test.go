@@ -2,7 +2,6 @@ package rabbithole
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -90,6 +89,47 @@ var _ = Describe("Rabbithole", func() {
 
 	BeforeEach(func() {
 		rmqc, _ = NewClient("http://127.0.0.1:15672", "guest", "guest")
+	})
+
+	Context("PUT /parameters/shovel/{vhost}/{name}", func() {
+		It("declares a shovel", func() {
+			vh := "rabbit/hole"
+			sn := "temporary"
+
+			ssu := "amqp://127.0.0.1/%2f"
+			sdu := "amqp://127.0.0.1/%2f"
+
+			shovelDefinition := ShovelDefinition{
+				SourceURI:         ssu,
+				SourceQueue:       "mySourceQueue",
+				DestinationURI:    sdu,
+				DestinationQueue:  "myDestQueue",
+				AddForwardHeaders: true,
+				AckMode:           "on-confirm",
+				DeleteAfter:       "never"}
+
+			_, err := rmqc.DeclareShovel(vh, sn, shovelDefinition)
+			Ω(err).Should(BeNil())
+
+			awaitEventPropagation()
+			x, err := rmqc.GetShovel(vh, sn)
+			Ω(err).Should(BeNil())
+			Ω(x.Name).Should(Equal(sn))
+			Ω(x.Vhost).Should(Equal(vh))
+			Ω(x.Component).Should(Equal("shovel"))
+			Ω(x.Definition.SourceURI).Should(Equal(ssu))
+			Ω(x.Definition.SourceQueue).Should(Equal("mySourceQueue"))
+			Ω(x.Definition.DestinationURI).Should(Equal(sdu))
+			Ω(x.Definition.DestinationQueue).Should(Equal("myDestQueue"))
+			Ω(x.Definition.AddForwardHeaders).Should(Equal(true))
+			Ω(x.Definition.AckMode).Should(Equal("on-confirm"))
+			Ω(x.Definition.DeleteAfter).Should(Equal("never"))
+
+			rmqc.DeleteShovel(vh, sn)
+			awaitEventPropagation()
+			x, err = rmqc.GetShovel(vh, sn)
+			Ω(x).Should(BeNil())
+		})
 	})
 
 	Context("GET /overview", func() {
@@ -596,7 +636,7 @@ var _ = Describe("Rabbithole", func() {
 			rmqc.DeleteQueue("rabbit/hole", q.Name)
 
 			qi2, err := rmqc.GetQueue("rabbit/hole", q.Name)
-			Ω(err).Should(Equal(errors.New("not found")))
+			Ω(err).Should(Equal(ErrorResponse{404, "Object Not Found", "Not Found"}))
 			Ω(qi2).Should(BeNil())
 		})
 	})
@@ -660,7 +700,7 @@ var _ = Describe("Rabbithole", func() {
 			awaitEventPropagation()
 
 			u2, err := rmqc.GetUser("rabbithole")
-			Ω(err).Should(Equal(errors.New("not found")))
+			Ω(err).Should(Equal(ErrorResponse{404, "Object Not Found", "Not Found"}))
 			Ω(u2).Should(BeNil())
 		})
 	})
@@ -1003,7 +1043,7 @@ var _ = Describe("Rabbithole", func() {
 			_, err = rmqc.ClearPermissionsIn("/", u)
 			awaitEventPropagation()
 			_, err = rmqc.GetPermissionsIn("/", u)
-			Ω(err).Should(Equal(errors.New("not found")))
+			Ω(err).Should(Equal(ErrorResponse{404, "Object Not Found", "Not Found"}))
 
 			rmqc.DeleteUser(u)
 		})
@@ -1042,7 +1082,7 @@ var _ = Describe("Rabbithole", func() {
 			awaitEventPropagation()
 			x, err := rmqc.GetExchange(vh, xn)
 			Ω(x).Should(BeNil())
-			Ω(err).Should(Equal(errors.New("not found")))
+			Ω(err).Should(Equal(ErrorResponse{404, "Object Not Found", "Not Found"}))
 		})
 	})
 
@@ -1079,7 +1119,7 @@ var _ = Describe("Rabbithole", func() {
 			awaitEventPropagation()
 			x, err := rmqc.GetQueue(vh, qn)
 			Ω(x).Should(BeNil())
-			Ω(err).Should(Equal(errors.New("not found")))
+			Ω(err).Should(Equal(ErrorResponse{404, "Object Not Found", "Not Found"}))
 		})
 	})
 
@@ -1100,7 +1140,7 @@ var _ = Describe("Rabbithole", func() {
 			x, err := rmqc.GetQueue(vh, qn)
 			awaitEventPropagation()
 			Ω(x).Should(BeNil())
-			Ω(err).Should(Equal(errors.New("not found")))
+			Ω(err).Should(Equal(ErrorResponse{404, "Object Not Found", "Not Found"}))
 		})
 	})
 
@@ -1233,7 +1273,7 @@ var _ = Describe("Rabbithole", func() {
 		Context("when policy not found", func() {
 			It("returns decoded response", func() {
 				pol, err := rmqc.GetPolicy("rabbit/hole", "woot")
-				Ω(err).Should(Equal(errors.New("not found")))
+				Ω(err).Should(Equal(ErrorResponse{404, "Object Not Found", "Not Found"}))
 				Ω(pol).Should(BeNil())
 			})
 		})
@@ -1314,7 +1354,7 @@ var _ = Describe("Rabbithole", func() {
 
 			// old policy should not exist already
 			_, err = rmqc.GetPolicy("rabbit/hole", "woot")
-			Ω(err).Should(Equal(errors.New("not found")))
+			Ω(err).Should(Equal(ErrorResponse{404, "Object Not Found", "Not Found"}))
 
 			// but new (updated) policy is here
 			pol, err := rmqc.GetPolicy("/", "woot2")
