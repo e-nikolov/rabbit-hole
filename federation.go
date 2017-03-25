@@ -172,11 +172,13 @@ func (c *Client) AddFederationUpstreamToSet(vhost, upstreamSetName string, upstr
 
 	fmt.Errorf("------------------------------\n")
 
-	if err != nil {
-		if err.Error() == "not found" {
+	if rme, ok := err.(ErrorResponse); ok {
+		if rme.StatusCode == 404 {
 			res, err = c.PutFederationUpstreamSet(vhost, upstreamSetName, []string{upstreamName})
 			return
+
 		}
+
 		return nil, err
 	}
 
