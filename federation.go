@@ -18,11 +18,11 @@ type FederationSetDefinition struct {
 // that match a policy.
 type FederationDefinition struct {
 	Uri            string `json:"uri"`
-	Expires        int    `json:"expires"`
-	MessageTTL     int32  `json:"message-ttl"`
-	MaxHops        int    `json:"max-hops"`
-	PrefetchCount  int    `json:"prefetch-count"`
-	ReconnectDelay int    `json:"reconnect-delay"`
+	Expires        int    `json:"expires,omitempty"`
+	MessageTTL     int32  `json:"message-ttl,omitempty"`
+	MaxHops        int    `json:"max-hops,omitempty"`
+	PrefetchCount  int    `json:"prefetch-count,omitempty"`
+	ReconnectDelay int    `json:"reconnect-delay,omitempty"`
 	AckMode        string `json:"ack-mode,omitempty"`
 	TrustUserId    bool   `json:"trust-user-id"`
 	Exchange       string `json:"exchange"`
@@ -63,7 +63,7 @@ func (c *Client) PutFederationUpstream(vhost string, upstreamName string, fDef F
 
 	res, err = executeRequest(c, req)
 	if err != nil {
-		return nil, err
+		return res, err
 	}
 
 	return res, nil

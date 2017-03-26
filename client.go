@@ -105,8 +105,14 @@ func executeRequest(client *Client, req *http.Request) (res *http.Response, err 
 	}
 	res, err = httpc.Do(req)
 
-	if err != nil {
-		return nil, err
+	if res.StatusCode >= http.StatusBadRequest {
+		rme := ErrorResponse{}
+		if err != nil {
+			return res, fmt.Errorf("Error %d from RabbitMQ: %s", res.StatusCode, err)
+		}
+
+		rme.StatusCode = res.StatusCode
+		return nil, rme
 	}
 
 	return res, nil
