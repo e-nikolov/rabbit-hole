@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"bitbucket.org/unchain/unchain-ares-old/logger"
+	"bitbucket.org/unchain/unchain-backend-shared/logger"
 	"github.com/pkg/errors"
 )
 
