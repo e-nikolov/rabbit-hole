@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"bitbucket.org/unchain/unchain-backend-shared/logger"
 	"github.com/pkg/errors"
 )
 
@@ -53,9 +52,6 @@ func (c *Client) PutFederationUpstream(vhost string, upstreamName string, fDef F
 		return nil, err
 	}
 
-	//body = []byte(`{"value":{"uri":"amqp://ares_admin:yYaCJESJ0LsT@188.166.84.89:5672/58af15daecfb2c1b3e27a7ac", "exchange":"wutt"}}`)
-
-	logger.Warn(string(body))
 	req, err := newRequestWithBody(c, "PUT", "parameters/federation-upstream/"+PathEscape(vhost)+"/"+PathEscape(upstreamName), body)
 	if err != nil {
 		return nil, err
